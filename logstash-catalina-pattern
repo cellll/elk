@@ -1,0 +1,1 @@
+TESTCATALINALOGMSG %{CATALINA_DATESTAMP:timestamp} %{JAVACLASS:class} %{WORD:actiontype}\n%{LOGLEVEL:loglevel}: %{GREEDYDATA:logcontent}
