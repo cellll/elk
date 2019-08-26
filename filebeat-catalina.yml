@@ -12,7 +12,8 @@ filebeat.inputs:
   paths:
     - /root/apache-tomcat-7.0.85/logs/catalina.2019-08-26.log
    
-  multiline.pattern: '^[A-Z].([a-z]+)[[:space:]][0-9]+'
+  #multiline.pattern: '^[A-Z].([a-z]+)[[:space:]][0-9]+'
+  multiline.pattern: '[A-Z].([a-z]+)[[:space:]][0-9]+|^[0-9]+:[0-9]+:[0-9]+,[0-9]+|^\[[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+\]+'
   multiline.negate: true
   multiline.match: after
   
