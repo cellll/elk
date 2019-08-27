@@ -1,1 +1,9 @@
-TESTCATALINALOGMSG %{CATALINA_DATESTAMP:timestamp} %{JAVACLASS:class} %{WORD:actiontype}\n%{LOGLEVEL:loglevel}: %{GREEDYDATA:logcontent}
+TESTAPACHEACCESSLOG %{IPORHOST:clientip}.+\[%{HTTPDATE:logged_time}\] "%{WORD:method} %{NOTSPACE:request}.+HTTP/%{NUMBER:httpVersion}" %{NUMBER:status} %{NUMBER:bytes}
+
+CATALINA_CONFIG_DATESTAMP %{HOUR}:%{MINUTE}:%{SECOND},%{NUMBER:MILLI}
+
+TESTCATALINAINITMSG %{CATALINA_DATESTAMP:timestamp} %{JAVACLASS:class} %{WORD:actiontype}\n%{LOGLEVEL:loglevel}: %{GREEDYDATA:logcontent}
+
+TESTCATALINACONFIGMSG %{CATALINA_CONFIG_DATESTAMP:timestamp}\s*\|-%{LOGLEVEL:loglevel}\s*in\s*%{JAVACLASS:class}\s*-\s*%{GREEDYDATA:logcontent}
+
+TESTCATALINALOGMSG \[%{TIMESTAMP_ISO8601:timestamp}\] %{LOGLEVEL:loglevel}\s*\[%{JAVACLASS:class}\]\s*-\s*%{GREEDYDATA:logcontent}
