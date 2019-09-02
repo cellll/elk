@@ -8,7 +8,7 @@ filebeat.inputs:
   multiline.match: after
 
 output.logstash:
-  hosts: ["192.168.1.32:5044"]
+  hosts: ["localhost:5044"]
 
 filebeat.config:
   modules:
