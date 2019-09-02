@@ -1,0 +1,29 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /root/tomcat_logs/catalina.out
+  multiline.pattern: '[A-Z].([a-z]+)[[:space:]][0-9]+|^[0-9]+:[0-9]+:[0-9]+,[0-9]+|^\[[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+\]+'
+  multiline.negate: true
+  multiline.match: after
+
+output.logstash:
+  hosts: ["192.168.1.32:5044"]
+
+filebeat.config:
+  modules:
+    path: ${path.config}/modules.d/*.yml
+    reload.enabled: false
+
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+
+processors:
+- add_host_metadata: ~
+- add_cloud_metadata: ~
+
+#   hosts: '${ELASTICSEARCH_HOSTS:elasticsearch:9200}'
+#   username: '${ELASTICSEARCH_USERNAME:}'
+#   password: '${ELASTICSEARCH_PASSWORD:}'

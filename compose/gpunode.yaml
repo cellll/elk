@@ -1,0 +1,36 @@
+version: "3.2"
+services:
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat:7.3.1
+    environment:
+      - system.hostfs=/hostfs
+    user: root
+    volumes:
+      - /root/son/elk/metricbeat.docker.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      - type: mount
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+      - type: bind
+        source: /proc
+        target: /hostfs/proc
+        read_only: true
+      - type: bind
+        source: /sys/fs/cgroup
+        target: /hostfs/sys/fs/cgroup
+        read_only: true
+      - type: bind
+        source: /
+        target: /hostfs
+        read_only: true
+    network_mode: "host"
+    command: 'metricbeat -e -E output.elasticsearch.hosts=["192.168.1.32:9200"]'
+  gpubeat:
+    image: gpubeat
+    environment:
+      eshost: '192.168.1.32'
+    volumes:
+      - /root/son/elk/gpubeat/nvidiagpubeat.yml:$WORKSPACE/src/github.com/ebay/nvidiagpubeat/nvidiagpubeat.yml:ro
+    network_mode: "host"
+  
+    
