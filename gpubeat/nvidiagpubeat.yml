@@ -24,7 +24,7 @@
 
 nvidiagpubeat:
   # Defines how often an event is sent to the output
-  period: 1s
+  period: 2s
   query: "utilization.gpu,utilization.memory,memory.total,memory.free,memory.used,temperature.gpu,pstate"
   env: "production"
   # env can be test or production. test is for test purposes to evaluate funcationality of this beat. Switch to production
@@ -50,22 +50,54 @@ nvidiagpubeat:
 # Configure what outputs to use when sending the data collected by the beat.
 # Multiple outputs may be used.
   
-# setup.template.overwrite: true
-# setup.template.enabled: false
-# setup.template.name: "metricbeat-nvidiagpubeat"
+# setup.template.overwrite: false
+# setup.template.enabled: true
+# setup.template.name: "gpubeat"
 # setup.template.pattern: "metricbeat-nvidiagpubeat-*"
 # setup.ilm.enabled: false
-# setup.ilm.rollover_alias: "metricbeat-nvidiagpubeat-gpu"
-# setup.ilm.policy_name: "nvidiagpubeat-7.3.1"
+# setup.ilm.rollover_alias: "gpubeat"
+# setup.ilm.policy_name: "gpubeat"
+# setup.ilm.check_exists: true
 
 #-------------------------- Elasticsearch output ------------------------------
-# output.elasticsearch:
+output.elasticsearch:
   # Array of hosts to connect to.
-#   hosts: ["localhost:9200"]
-#   index: "metricbeat-nvidiagpubeat"
+  hosts: ["${eshost}:9200"]
+  index: "nvidiagpubeat-%{[agent.version]}-%{+yyyy.MM.dd}"
   
+setup.ilm:
+  enabled: false
+  policy_name: nvidiagpubeat
+  check_exists: true
+  
+setup.template:
+  name: "nvidiagpubeat"
+  pattern: "nvidiagpubeat-*"
+  enabled: true
+  
+#   A template is used to set the mapping in Elasticsearch
+  # By default template loading is enabled and the template is loaded.
+  # These settings can be adjusted to load your own template or overwrite existing ones.
 
+#   Set to false to disable template loading.
+#   template.enabled: true
 
+#   # Template name. By default the template name is nvidiagpubeat.
+#   template.name: "asdf"
+#   # Path to template file
+#   template.path: "/root/beats_dev/src/github.com/ebay/nvidiagpubeat/nvidiagpubeat.template.json"
+
+#   # Overwrite existing template
+#   template.overwrite: false
+
+  # If set to true, nvidiagpubeat checks the Elasticsearch version at connect time, and if it
+  # is 2.x, it loads the file specified by the template.versions.2x.path setting. The
+  # default is true.
+  #template.versions.2x.enabled: true
+
+  # Path to the Elasticsearch 2.x version of the template file.
+  #template.versions.2x.path: "${path.config}/nvidiagpubeat.template-es2x.json"
+   
   # Optional protocol and basic auth credentials.
   #protocol: "https"
   #username: "elastic"
@@ -87,7 +119,6 @@ nvidiagpubeat:
   #ssl.key: "/etc/pki/client/cert.key"
 
 #================================ Logging =====================================
-
 # Sets log level. The default log level is info.
 # Available log levels are: critical, error, warning, info, debug
 #logging.level: debug
