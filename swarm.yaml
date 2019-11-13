@@ -1,0 +1,97 @@
+version: "3.2"
+services:
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.1
+    hostname: "{{.Node.Hostname}}"
+    environment:
+      - discovery.type=single-node
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - ~/elk/esdata:/usr/share/elasticsearch/data
+    deploy:
+      placement:
+        constraints:
+          - node.labels.master == yes
+### mkdir volume mount directory : esdata , chmod 777 
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.3.1
+    hostname: "{{.Node.Hostname}}"
+    ports:
+      - 5044:5044
+    volumes:
+      - ~/elk/logstash/testpattern:/usr/share/logstash/testpattern
+      - ~/elk/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    depends_on:
+      - es
+    deploy:
+      placement:
+        constraints:
+          - node.labels.master == yes
+          
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.3.1
+    hostname: "{{.Node.Hostname}}"
+    user: root
+    network_mode: "host"
+    volumes:
+      - ~/elk/filebeat/filebeat.docker.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /opt/tomcat/apache-tomcat-7.0.91/logs:/root/tomcat_logs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      placement:
+        constraints:
+          - node.labels.master == yes
+    depends_on:
+      - es
+      - logstash
+          
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat:7.3.1
+    hostname: "{{.Node.Hostname}}"
+    environment:
+      - system.hostfs=/hostfs
+    user: root
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.metric == yes
+    volumes:
+      - ~/elk/metricbeat/metricbeat.docker.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - type: bind
+        source: /proc
+        target: /hostfs/proc
+        read_only: true
+      - type: bind
+        source: /sys/fs/cgroup
+        target: /hostfs/sys/fs/cgroup
+        read_only: true
+      - type: bind
+        source: /
+        target: /hostfs
+        read_only: true
+    depends_on:
+      - es
+    network_mode: "host"
+    command: 'metricbeat -e -E output.elasticsearch.hosts=["192.168.1.32:9200"]'
+  
+  nvidiagpubeat:
+    image: celeste134/nvidiagpubeat
+    hostname: "{{.Node.Hostname}}"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.labels.metric == yes
+    environment:
+      eshost: "localhost"
+    volumes:
+      - ~/elk/metricbeat/nvidiagpubeat.yml:/root/beats_dev/src/github.com/ebay/nvidiagpubeat/nvidiagpubeat.yml:ro
+    depends_on:
+      - es
+    network_mode: "host"
+    command: '/root/beats_dev/src/github.com/ebay/nvidiagpubeat/nvidiagpubeat -c /root/beats_dev/src/github.com/ebay/nvidiagpubeat/nvidiagpubeat.yml -e -d "*" -E seccomp.enabled=false'
+  
