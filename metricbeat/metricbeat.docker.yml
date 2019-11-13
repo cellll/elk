@@ -27,7 +27,7 @@ metricbeat.modules:
     #- raid           # Raid
     #- socket         # Sockets and connection info (linux only)
   enabled: true
-  period: 3s
+  period: 2s
   processes: ['.*']
 
   # Configure the metric types that are included by these metricsets.
@@ -45,7 +45,7 @@ metricbeat.modules:
     - "memory"
     - "network"
   hosts: ["unix:///var/run/docker.sock"]
-  period: 3s
+  period: 2s
   enabled: true
 
 processors:
@@ -53,5 +53,16 @@ processors:
 
 output.elasticsearch:
   hosts: '${ELASTICSEARCH_HOSTS:elasticsearch:9200}'
+  index: 'metricbeat-%{[agent.version]}-%{+yyyy.MM.dd}'
   username: '${ELASTICSEARCH_USERNAME:}'
   password: '${ELASTICSEARCH_PASSWORD:}'
+
+setup.ilm:
+  enabled: false
+  policy_name: metricbeat
+  check_exists: true
+  
+setup.template:
+  name: "metricbeat"
+  pattern: "metricbeat-*"
+  enabled: true
